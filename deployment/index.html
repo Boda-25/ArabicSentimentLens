@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>ArabicSentimentLens</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family:
+                Inter,
+                system-ui,
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                Arial,
+                sans-serif;
+
+            background:
+                linear-gradient(135deg, #eef2ff 0%, #f8fafc 45%, #ecfeff 100%);
+
+            color: #172033;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: min(1000px, 92%);
+            margin: 0 auto;
+            padding: 50px 0;
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 7px 14px;
+            border-radius: 999px;
+            background: #e0e7ff;
+            color: #3730a3;
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: clamp(34px, 6vw, 58px);
+            font-weight: 800;
+            letter-spacing: -1.5px;
+        }
+
+        .subtitle {
+            max-width: 700px;
+            margin: 15px auto 0;
+            color: #64748b;
+            font-size: 17px;
+            line-height: 1.7;
+        }
+
+        .card {
+            background: rgba(255,255,255,0.88);
+            border: 1px solid rgba(148,163,184,0.25);
+            border-radius: 22px;
+            padding: 28px;
+            margin-bottom: 22px;
+            box-shadow: 0 15px 40px rgba(15,23,42,0.08);
+            backdrop-filter: blur(10px);
+        }
+
+        .card h2 {
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+
+        .card p {
+            color: #64748b;
+            line-height: 1.7;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 150px;
+            resize: vertical;
+            border: 2px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 16px;
+            font-size: 17px;
+            font-family: inherit;
+            outline: none;
+            transition: 0.2s;
+        }
+
+        textarea:focus {
+            border-color: #6366f1;
+            box-shadow: 0 0 0 4px rgba(99,102,241,0.1);
+        }
+
+        button {
+            width: 100%;
+            margin-top: 14px;
+            border: none;
+            border-radius: 14px;
+            padding: 15px 20px;
+            background: #4f46e5;
+            color: white;
+            font-size: 17px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+            background: #4338ca;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: wait;
+            transform: none;
+        }
+
+        #result {
+            margin-top: 18px;
+            padding: 18px;
+            border-radius: 15px;
+            text-align: center;
+            font-size: 22px;
+            font-weight: 800;
+            display: none;
+        }
+
+        .positive {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .negative {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .neutral {
+            background: #f1f5f9;
+            color: #475569;
+        }
+
+        .score {
+            display: block;
+            margin-top: 7px;
+            font-size: 13px;
+            font-weight: 500;
+            opacity: 0.8;
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+            margin-top: 20px;
+        }
+
+        .metric {
+            text-align: center;
+            padding: 18px 10px;
+            background: #f8fafc;
+            border-radius: 15px;
+        }
+
+        .metric-value {
+            font-size: 25px;
+            font-weight: 800;
+            color: #3730a3;
+        }
+
+        .metric-label {
+            margin-top: 5px;
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .info-item {
+            padding: 16px;
+            background: #f8fafc;
+            border-radius: 14px;
+        }
+
+        .info-item strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .info-item span {
+            color: #64748b;
+        }
+
+        .examples {
+            display: grid;
+            gap: 10px;
+        }
+
+        .example {
+            padding: 14px 16px;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .example:hover {
+            background: #f8fafc;
+            border-color: #a5b4fc;
+        }
+
+        .example-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: #64748b;
+            margin-bottom: 5px;
+        }
+
+        .example-text {
+            direction: rtl;
+            text-align: right;
+            font-size: 15px;
+        }
+
+        .footer {
+            text-align: center;
+            color: #64748b;
+            font-size: 13px;
+            padding: 15px 0;
+        }
+
+        .status {
+            text-align: center;
+            font-size: 13px;
+            color: #64748b;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 700px) {
+            .metrics {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="hero">
+        <div class="badge">Arabic NLP • Machine Learning</div>
+
+        <h1>ArabicSentimentLens</h1>
+
+        <p class="subtitle">
+            Arabic sentiment analysis powered by TF-IDF and Linear SVM,
+            running entirely inside your browser.
+        </p>
+    </div>
+
+
+    <div class="card">
+
+        <h2> Test the Model</h2>
+
+        <p>
+            اكتب أي review باللغة العربية، والنموذج سيحدد إذا كان
+            sentiment إيجابي أو سلبي.
+        </p>
+
+        <textarea
+            id="textInput"
+            dir="rtl"
+            placeholder="اكتب مراجعة عربية هنا..."
+        ></textarea>
+
+        <button id="predictButton" onclick="predictSentiment()">
+            Analyze Sentiment
+        </button>
+
+        <div id="result"></div>
+
+        <div id="status" class="status">
+            Loading model...
+        </div>
+
+    </div>
+
+
+    <div class="card">
+
+        <h2> Model Performance</h2>
+
+        <div class="metrics">
+
+            <div class="metric">
+                <div class="metric-value">91.42%</div>
+                <div class="metric-label">Accuracy</div>
+            </div>
+
+            <div class="metric">
+                <div class="metric-value">91.49%</div>
+                <div class="metric-label">Precision</div>
+            </div>
+
+            <div class="metric">
+                <div class="metric-value">91.55%</div>
+                <div class="metric-label">Recall</div>
+            </div>
+
+            <div class="metric">
+                <div class="metric-value">91.52%</div>
+                <div class="metric-label">F1 Score</div>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="card">
+
+        <h2> How It Works</h2>
+
+        <p>
+            The model follows a classical and lightweight NLP pipeline:
+        </p>
+
+        <div class="info-grid">
+
+            <div class="info-item">
+                <strong>1. Text Cleaning</strong>
+                <span>Arabic normalization, HTML/URL removal and whitespace cleaning.</span>
+            </div>
+
+            <div class="info-item">
+                <strong>2. TF-IDF</strong>
+                <span>100,000 unigram and bigram features.</span>
+            </div>
+
+            <div class="info-item">
+                <strong>3. Linear SVM</strong>
+                <span>Linear Support Vector Machine for binary classification.</span>
+            </div>
+
+            <div class="info-item">
+                <strong>4. Browser Inference</strong>
+                <span>The model runs locally using JavaScript without a backend server.</span>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="card">
+
+        <h2> Dataset</h2>
+
+        <div class="info-grid">
+
+            <div class="info-item">
+                <strong>Reviews</strong>
+                <span>329,967 cleaned reviews</span>
+            </div>
+
+            <div class="info-item">
+                <strong>Task</strong>
+                <span>Binary Arabic Sentiment Classification</span>
+            </div>
+
+            <div class="info-item">
+                <strong>Features</strong>
+                <span>100,000 TF-IDF features</span>
+            </div>
+
+            <div class="info-item">
+                <strong>Model</strong>
+                <span>Linear SVM</span>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="card">
+
+        <h2> Try These Examples</h2>
+
+        <div class="examples">
+
+            <div class="example"
+                 onclick="useExample('الفيلم كان رائع جدا واستمتعت بكل دقيقة فيه')">
+
+                <div class="example-label">Positive</div>
+
+                <div class="example-text">
+                    الفيلم كان رائع جدا واستمتعت بكل دقيقة فيه
+                </div>
+
+            </div>
+
+
+            <div class="example"
+                 onclick="useExample('الخدمة سيئة جدا ولن اشتري منهم مرة اخرى')">
+
+                <div class="example-label">Negative</div>
+
+                <div class="example-text">
+                    الخدمة سيئة جدا ولن اشتري منهم مرة اخرى
+                </div>
+
+            </div>
+
+
+            <div class="example"
+                 onclick="useExample('المنتج جيد والسعر مناسب جدا')">
+
+                <div class="example-label">Positive</div>
+
+                <div class="example-text">
+                    المنتج جيد والسعر مناسب جدا
+                </div>
+
+            </div>
+
+
+            <div class="example"
+                 onclick="useExample('تجربة مملة وسيئة ولا انصح بها')">
+
+                <div class="example-label">Negative</div>
+
+                <div class="example-text">
+                    تجربة مملة وسيئة ولا انصح بها
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="footer">
+        ArabicSentimentLens • Arabic NLP Project • TF-IDF + Linear SVM
+    </div>
+
+</div>
+
+
+<script>
+
+let model = null;
+
+
+/* ==========================================
+   LOAD MODEL
+========================================== */
+
+async function loadModel() {
+
+    try {
+
+        const response = await fetch("./model.json");
+
+        if (!response.ok) {
+            throw new Error("Unable to load model.json");
+        }
+
+        model = await response.json();
+
+        document.getElementById("status").textContent =
+            " Model loaded successfully — ready for inference.";
+
+    } catch (error) {
+
+        console.error(error);
+
+        document.getElementById("status").textContent =
+            " Failed to load model.json. Make sure it is in the same folder.";
+
+    }
+}
+
+
+/* ==========================================
+   ARABIC TEXT CLEANING
+========================================== */
+
+function cleanArabicText(text) {
+
+    text = String(text);
+
+    // Remove HTML
+    text = text.replace(/<[^>]+>/g, " ");
+
+    // Remove URLs
+    text = text.replace(
+        /https?:\/\/\S+|www\.\S+/gi,
+        " "
+    );
+
+    // Normalize Alef variants
+    text = text.replace(/[إأآ]/g, "ا");
+
+    // Remove Arabic diacritics
+    text = text.replace(/[\u064B-\u065F\u0670]/g, "");
+
+    // Remove Tatweel
+    text = text.replace(/ـ/g, "");
+
+    // Normalize whitespace
+    text = text.replace(/\s+/g, " ").trim();
+
+    return text;
+}
+
+
+/* ==========================================
+   SKLEARN-LIKE TOKENIZATION
+========================================== */
+
+function tokenize(text) {
+
+    /*
+        Equivalent to sklearn's default token pattern:
+
+        (?u)\b\w\w+\b
+
+        We keep tokens containing at least
+        two word characters.
+    */
+
+    const matches = text.toLowerCase().match(
+        /[\p{L}\p{N}_]{2,}/gu
+    );
+
+    return matches || [];
+}
+
+
+/* ==========================================
+   GENERATE UNIGRAMS + BIGRAMS
+========================================== */
+
+function generateNgrams(tokens) {
+
+    const ngrams = [];
+
+    // Unigrams
+    for (let i = 0; i < tokens.length; i++) {
+        ngrams.push(tokens[i]);
+    }
+
+    // Bigrams
+    for (let i = 0; i < tokens.length - 1; i++) {
+        ngrams.push(
+            tokens[i] + " " + tokens[i + 1]
+        );
+    }
+
+    return ngrams;
+}
+
+
+/* ==========================================
+   BROWSER TF-IDF + LINEAR SVM
+========================================== */
+
+function predictBrowser(text) {
+
+    const cleaned = cleanArabicText(text);
+
+    const tokens = tokenize(cleaned);
+
+    const terms = generateNgrams(tokens);
+
+    const counts = {};
+
+
+    /*
+        Count only terms existing
+        in the trained vocabulary.
+    */
+
+    for (const term of terms) {
+
+        const index = model.vocabulary[term];
+
+        if (index !== undefined) {
+
+            counts[index] =
+                (counts[index] || 0) + 1;
+
+        }
+    }
+
+
+    /*
+        Sublinear TF:
+
+        tf = 1 + log(raw_count)
+
+        Then:
+
+        TF-IDF = tf * IDF
+    */
+
+    const values = {};
+
+    let squaredSum = 0;
+
+
+    for (const indexString in counts) {
+
+        const index = Number(indexString);
+
+        const count = counts[index];
+
+        const tf = 1 + Math.log(count);
+
+        const value =
+            tf * model.idf[index];
+
+        values[index] = value;
+
+        squaredSum += value * value;
+    }
+
+
+    /*
+        L2 normalization
+        exactly as used by sklearn.
+    */
+
+    const norm = Math.sqrt(squaredSum);
+
+
+    /*
+        Linear SVM:
+
+        score = dot(X, coefficients)
+                + intercept
+    */
+
+    let score = model.svm_intercept;
+
+
+    if (norm > 0) {
+
+        for (const indexString in values) {
+
+            const index = Number(indexString);
+
+            const normalizedValue =
+                values[index] / norm;
+
+            score +=
+                normalizedValue *
+                model.svm_coefficients[index];
+        }
+    }
+
+
+    const prediction =
+        score >= 0 ? 1 : 0;
+
+
+    return {
+        prediction,
+        score
+    };
+}
+
+
+/* ==========================================
+   UI PREDICTION
+========================================== */
+
+function predictSentiment() {
+
+    if (!model) {
+
+        alert(
+            "Model is still loading. Please try again."
+        );
+
+        return;
+    }
+
+
+    const input =
+        document.getElementById("textInput");
+
+    const result =
+        document.getElementById("result");
+
+    const button =
+        document.getElementById("predictButton");
+
+    const text =
+        input.value.trim();
+
+
+    if (!text) {
+
+        result.style.display = "block";
+
+        result.className = "neutral";
+
+        result.innerHTML =
+            " Please enter an Arabic review.";
+
+        return;
+    }
+
+
+    button.disabled = true;
+
+    button.textContent = "Analyzing...";
+
+
+    try {
+
+        const output =
+            predictBrowser(text);
+
+
+        const sentiment =
+            output.prediction === 1
+                ? "Positive"
+                : "Negative";
+
+
+        const arabicSentiment =
+            output.prediction === 1
+                ? "إيجابي "
+                : "سلبي ";
+
+
+        result.style.display = "block";
+
+        result.className =
+            output.prediction === 1
+                ? "positive"
+                : "negative";
+
+
+        result.innerHTML = `
+            ${arabicSentiment}
+            <span class="score">
+                ${sentiment} • SVM Score:
+                ${output.score.toFixed(4)}
+            </span>
+        `;
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        result.style.display = "block";
+
+        result.className = "negative";
+
+        result.innerHTML =
+            " An error occurred during inference.";
+
+    }
+
+
+    button.disabled = false;
+
+    button.textContent = "Analyze Sentiment";
+}
+
+
+/* ==========================================
+   EXAMPLE BUTTON
+========================================== */
+
+function useExample(text) {
+
+    document.getElementById("textInput").value = text;
+
+    predictSentiment();
+}
+
+
+/* ==========================================
+   INITIALIZE
+========================================== */
+
+loadModel();
+
+</script>
+
+</body>
+</html>
